@@ -283,6 +283,7 @@ class directories
 			'_folder' => 'folder.gif',
 			'_unknown' => 'unknown.gif',
 			'aam' => 'authorware.gif',
+			'aas' => 'authorware.gif',
 			'avi' => 'media.gif',
 			'bmp' => 'bmp.gif',
 			'clp' => 'clp.gif',
