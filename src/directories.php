@@ -182,7 +182,8 @@ class directories
 					$extension = (strpos ($file, '.') !== false ? str_replace ('.', '', strrchr ($file, '.')) : '');
 					
 					# If a non-empty array of supported file types has been supplied, check whether the current file in the loop should be included
-					$supported = (($allowSupportedFileTypesOnly && (!in_array ($extension, $supportedFileTypes))) ? false : true);
+					require_once ('application.php');
+					$supported = (($allowSupportedFileTypesOnly && (!application::iin_array ($extension, $supportedFileTypes))) ? false : true);
 					
 					# Assign the file to the array if required
 					if ($supported) {
