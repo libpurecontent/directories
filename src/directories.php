@@ -37,7 +37,10 @@ class directories
 		if (substr ($directory, -1) != '/') {$directory .= '/';}
 		
 		# Ensure that the directory exists
-		if (!is_dir ($documentRoot . $directory)) {echo '<p>Error: the site administrator specified an invalid directory for the images.</p>'; return false;}
+		if (!is_dir ($documentRoot . $directory)) {
+			echo '<p>Error: the site administrator specified an invalid directory.</p>';
+			return false;
+		}
 		
 		# Return the result
 		return $directory;
@@ -527,6 +530,53 @@ class directories
 		
 		# Return the list
 		return $results;
+	}
+	
+	
+	# Function to clean up the directory structure by removing empty directories
+	function listEmptyDirectories ($start)
+	{
+		# Ensure the start point exists
+		if (!is_dir ($start)) {return false;}
+		
+		# Get the directory structure
+		$tree = directories::tree ($start . '/');
+		
+		# Flatten the directory structure
+		$directories = directories::flatten ($tree);
+		
+		# Loop through each directory and create a list of empty directories
+		$emptyDirectories = array ();
+		foreach ($directories as $directory) {
+			$serverDirectory = $start . $directory;
+			if (!$files = directories::listFiles ($serverDirectory, array (), $directoryIsFromRoot = true)) {
+				$emptyDirectories[] = $serverDirectory;
+			}
+		}
+		
+		# Return the list of empty directories
+		return $emptyDirectories;
+	}
+	
+	
+	# Function to delete empty directories
+	function deleteEmptyDirectories ($start)
+	{
+		# Get the empty directories
+		$emptyDirectories = directories::listEmptyDirectories ($start);
+		
+		# Delete each directory
+		$problemsFound = false;
+		foreach ($emptyDirectories as $emptyDirectory) {
+			
+			# Attempt to delete the directory or flag that there was a problem
+			if (!@rmdir ($emptyDirectory)) {
+				$problemsFound[] = $emptyDirectory;
+			}
+		}
+		
+		# Return true for no problems
+		return $problemsFound;
 	}
 	
 	
