@@ -152,10 +152,10 @@ class directories
 	
 	
 	# Function to obtain an array of file details from a directory
-	function listFiles ($directory, $supportedFileTypes = array ())
+	function listFiles ($directory, $supportedFileTypes = array (), $directoryIsFromRoot = false)
 	{
 		# Append the document root to the current directory (for the lifetime of this function only)
-		$directory = $_SERVER['DOCUMENT_ROOT'] . $directory;
+		if (!$directoryIsFromRoot) {$directory = $_SERVER['DOCUMENT_ROOT'] . $directory;}
 		
 		# Check the supplied directory is actually a directory
 		if (!is_dir ($directory)) {return false;}
