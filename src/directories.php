@@ -318,6 +318,7 @@ class directories
 			'ppt' => 'ppt.gif',
 			'qt' => 'quicktime.jpg',
 			'rtf' => 'word.gif',
+			'sav' => 'spss.gif',
 			'tar' => 'zip.gif',
 			'tif' => 'tif.gif',
 			'tiff' => 'tif.gif',
@@ -408,6 +409,35 @@ class directories
 		
 		# Return the contents
 		return $contents;
+	}
+	
+	
+	# Function to get a list of the directories contained in a directory
+	function listContainedDirectories ($directory)
+	{
+		# Open the directory
+		$handler = opendir ($directory);
+		
+		# Add each directory to an array
+		$results = array ();
+		while ($file = readdir ($handler)) {
+			
+			# Avoid non-directories
+			if (!is_dir ($directory . $file)) {continue;}
+			if (($file == '.') || ($file == '..')) {continue;}
+			
+			# Add the file to the list
+			$results[] = $file;
+		}
+		
+		# Close the directory
+		closedir ($handler);
+		
+		# Sort the list alphabetically
+		sort ($results);
+		
+		# Return the list
+		return $results;
 	}
 	
 	
