@@ -172,7 +172,9 @@ class directories
 		$files = array ();
 		
 		# Open the directory, and read its contents
-		if ($handle = opendir ($directory)) {
+		if (!$handle = @opendir ($directory)) {
+			#!# Throw an error here
+		} else {
 			
 			# Loop through each file, excluding . and .., and assign an array of information for it
 			while (($file = readdir ($handle)) !== false) {
@@ -361,7 +363,7 @@ class directories
 	
 	
 	# Function to get directory structure (but not contents)
-	function getRecursiveStructure ($directory, $exclude = array ()/*, $onlyInclude = array ()*/)
+	function tree ($directory, $exclude = array ()/*, $onlyInclude = array ()*/)
 	{
 		# Make sure it's a directory
 		if (!is_dir ($directory)) {return false;}
@@ -373,7 +375,9 @@ class directories
 		
 		# Open the directory
 		$contents = array ();
-		if ($directoryHandle = opendir ($directory)) {
+		if (!$directoryHandle = @opendir ($directory)) {
+			#!# Throw an error here
+		} else {
 			
 			# Loop through the directory
 			while (($item = readdir ($directoryHandle)) !== false) {
@@ -386,7 +390,7 @@ class directories
 				
 				# If the item is an array, get its contents
 				if (is_dir ($directory . $item)) {
-					$contents[$item] = directories::getRecursiveStructure ($directory . $item . '/', $exclude/*, $onlyInclude*/);
+					$contents[$item] = directories::tree ($directory . $item . '/', $exclude/*, $onlyInclude*/);
 					
 				} /* else {
 					
@@ -412,19 +416,104 @@ class directories
 	}
 	
 	
-	# Function to get a list of the directories contained in a directory
-	function listContainedDirectories ($directory)
+	# Function to flatten a directory structure
+	function flatten ($directories, $startPoint = '/')
 	{
+		# Start a list of entries
+		$entries = array ();
+		
+		# Loop through the directory structure
+		foreach ($directories as $directory => $contents) {
+			
+			# Compile the entry
+			$entry = $startPoint . $directory . '/';
+			
+			# Add the entry to the list of entries
+			$entries[] = $entry;
+			
+			# If there are contents, recurse
+			if ($contents) {
+				$subdirectories = directories::flatten ($contents, $entry);
+				$entries = array_merge ($entries, $subdirectories);
+			}
+		}
+		
+		# Sort the entries
+		sort ($entries);
+		
+		# Return the entries
+		return $entries;
+	}
+	
+	
+	# Function to get a flattened file listing ($start is non-slash terminated)
+	function flattenedFileListing ($start, $supportedFileTypes = array (), $includeRoot = true, $excludeFilesOfSize = false)
+	{
+		# Get the directory structure
+		$tree = directories::tree ($start . '/');
+		
+		# Flatten the directory structure
+		$directories = directories::flatten ($tree);
+		
+		# Add the root path to the tree
+		array_unshift ($directories, '/');
+		
+		# Get the files from each directory
+		$listing = array ();
+		foreach ($directories as $directory) {
+			
+			# Get the files in this directory, and skip if none in the directory
+			if (!$files = directories::listFiles ($start . $directory, $supportedFileTypes, true)) {continue;}
+			
+			# Add each file to the master list
+			foreach ($files as $file => $attributes) {
+				
+				# Determine the location, and skip if its a directory
+				if ($attributes['type'] == 'dir') {continue;}
+				
+				# Exclude files of a particular size if necessary
+				if ($excludeFilesOfSize) {
+					if ($attributes['size'] == $excludeFilesOfSize) {continue;}
+				}
+				
+				# Add the file to the master list
+				$listing[] = ($includeRoot ? $start : '') . $directory . $file;
+			}
+		}
+		
+		# Sort the listing
+		sort ($listing);
+		
+		# Return the listing
+		return $listing;
+	}
+	
+	
+	# Function to get a list of the directories contained in a directory
+	function listContainedDirectories ($directory, $exclude = array ())
+	{
+		# Ensure the names to be excluded are an array
+		require_once ('application.php');
+		$exclude = application::ensureArray ($exclude);
+		
+		# Start an array to hold the results
+		$results = array ();
+		
+		# Ensure the directory exists
+		if (!is_dir ($directory)) {return $results;}
+		
 		# Open the directory
 		$handler = opendir ($directory);
 		
 		# Add each directory to an array
-		$results = array ();
 		while ($file = readdir ($handler)) {
 			
 			# Avoid non-directories
 			if (!is_dir ($directory . $file)) {continue;}
 			if (($file == '.') || ($file == '..')) {continue;}
+			
+			# Avoid areas to be excluded
+			if (in_array ($file, $exclude)) {continue;}
 			
 			# Add the file to the list
 			$results[] = $file;
