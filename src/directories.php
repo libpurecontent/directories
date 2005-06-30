@@ -450,7 +450,7 @@ class directories
 	
 	
 	# Function to get a flattened file listing ($start is non-slash terminated)
-	function flattenedFileListing ($start, $supportedFileTypes = array (), $includeRoot = true, $excludeFilesOfSize = false)
+	function flattenedFileListing ($start, $supportedFileTypes = array (), $includeRoot = true, $excludeFileTemplate = false)
 	{
 		# Get the directory structure
 		$tree = directories::tree ($start . '/');
@@ -474,9 +474,21 @@ class directories
 				# Determine the location, and skip if its a directory
 				if ($attributes['type'] == 'dir') {continue;}
 				
-				# Exclude files of a particular size if necessary
-				if ($excludeFilesOfSize) {
-					if ($attributes['size'] == $excludeFilesOfSize) {continue;}
+				# Exclude files of a particular size if necessary; check the size, then that it can be opened, then the contents for a match
+				if ($excludeFileTemplate) {
+					if ($attributes['size'] == strlen ($excludeFileTemplate)) {
+						
+						# Attempt to open the file
+						$fileToCompare = $start . $directory . $file;
+						if (is_readable ($fileToCompare)) {
+							$fileToCompareContents = file_get_contents ($fileToCompare);
+							
+							# Compare the contents
+							if (md5 ($fileToCompareContents) == md5 ($excludeFileTemplate)) {
+								continue;
+							}
+						}
+					}
 				}
 				
 				# Add the file to the master list
