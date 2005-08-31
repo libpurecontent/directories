@@ -83,7 +83,7 @@ class directories
 	
 	
 	# Function to create a printed list of files
-	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*', ), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false)
+	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*', ), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array ())
 	{
 		# Obtain the current directory
 		$currentDirectory = rawurldecode ($_SERVER['REQUEST_URI']);
@@ -94,6 +94,15 @@ class directories
 		
 		# Construct an array of files in the directory
 		$files = directories::listFiles ($currentDirectory);
+		
+		# If a list of areas is given, show only those allowed
+		if ($showOnly) {
+			foreach ($files as $file => $attributes) {
+				if (!in_array ($currentDirectory . $file, $showOnly)) {
+					unset ($files[$file]);
+				}
+			}
+		}
 		
 		# Remove files which should be hidden
 		$files = directories::removeHiddenFiles ($hiddenFiles, $files, $currentDirectory, $caseSensitiveMatching);
@@ -221,6 +230,9 @@ class directories
 		# Start an array of cleaned files
 		$cleanedFiles = array ();
 		
+		# Return if no files
+		if (!$files) {return $cleanedFiles;}
+		
 		# Construct a list of files to remain hidden
 		$osFiles = array ('recycler/', 'RECYCLER/', );
 		$hiddenFiles = array_merge ($hiddenFiles, $osFiles);
@@ -322,6 +334,7 @@ class directories
 			'psd' => 'psd.gif',
 			'ppt' => 'ppt.gif',
 			'qt' => 'quicktime.jpg',
+			'rm' => 'real.gif',
 			'rtf' => 'word.gif',
 			'sav' => 'spss.gif',
 			'tar' => 'zip.gif',
@@ -600,6 +613,9 @@ class directories
 		
 		# Remove hidden files
 		$files = directories::removeHiddenFiles ($excludeFiles, $files, $directory);
+		
+		# Sort the files
+		ksort ($files);
 		
 		# Show in reverse order
 		$files = array_reverse ($files);
