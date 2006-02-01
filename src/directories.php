@@ -107,13 +107,13 @@ class directories
 		# Remove files which should be hidden
 		$files = directories::removeHiddenFiles ($hiddenFiles, $files, $currentDirectory, $caseSensitiveMatching);
 		
-		# Sort the list alphabetically
-		uasort ($files, array ('directories', 'compare'));
-		
 		# If there are no documents, state this
-		if (count ($files) < 1) {
+		if (!$files) {
 			return $html = '<p>There are no documents available here at present.</p>';
 		}
+		
+		# Sort the list alphabetically
+		uasort ($files, array ('directories', 'compare'));
 		
 		# Start an HTML list
 		$html = "\n" . '<ul class="filelist">';
@@ -138,8 +138,19 @@ class directories
 			$titleHtml =  ((array_key_exists ($attributes['extension'], $extensions)) ? ".{$attributes['extension']} file" : (($attributes['directory']) ? 'Folder' : 'Unknown file type'));
 			$iconHtml = '<img src="' . $iconsDirectory . $iconFile . '" alt="' . $titleHtml . '" ' . $iconSizeHtml . ' />';
 			
+			# For a .url link file, open the file and get the contents of the line starting URL=
+			if ($attributes['extension'] == 'url') {
+				$linkFileContents = file_get_contents ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file);
+				$lines = explode ("\n", $linkFileContents);
+				foreach ($lines as $line) {
+					if (ereg ('^URL=(.*)', $line, $matches)) {
+						$file = $matches[1];
+					}
+				}
+			}
+			
 			# Add each file to the list, showing a trailing slash for directories if required
-			$html .= "\n\t" . '<li><a href="' . str_replace (array (' ', '#'), array ('%20', '%23') , htmlentities ($file)) . (($attributes['directory']) ? '/' : '') . '" title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlentities ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>' . (!$attributes['directory'] ? ' (' . date ('j/m/y', $attributes['time']) . ', ' . directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file) . ')' : '') . '</li>';
+			$html .= "\n\t" . '<li><a href="' . str_replace (array (' ', '#'), array ('%20', '%23') , htmlentities ($file)) . (($attributes['directory']) ? '/' : '') . '"' . ($attributes['extension'] == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlentities ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>' . (!$attributes['directory'] ? ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($attributes['extension'] == 'url' ? 'Link' : directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')' : '') . '</li>';
 		}
 		
 		# Complete the list
@@ -203,6 +214,7 @@ class directories
 					if ($supported) {
 						$files[$file] = array (
 							'name' => (strstr ($file, '.') ? substr ($file, 0, strrpos ($file, '.')) : $file),
+							#!# This section will generate errors if the file is huge - not really fixable though
 							'size' => filesize ($directory . $file),
 							'time' => filemtime ($directory . $file),
 							'type' => filetype ($directory . $file),
@@ -316,6 +328,7 @@ class directories
 			'hqx' => 'zip.gif',
 			'htm' => 'html.gif',
 			'html' => 'html.gif',
+			'mht' => 'html.gif',
 			'js' => 'js.gif',
 			'jpg' => 'jpg.gif',
 			'jpeg' => 'jpg.gif',
@@ -606,7 +619,7 @@ class directories
 	
 	
 	# Function to show all the news articles (html files) in a directory
-	function showNewsArchive ($directory, $excludeFiles)
+	function showNewsArchive ($directory, $excludeFiles, $limit = false)
 	{
 		# Get the file listing
 		$files = directories::listFiles ($directory, 'html');
@@ -621,8 +634,13 @@ class directories
 		$files = array_reverse ($files);
 		
 		# Loop through each and show it
+		$i = 0;
 		foreach ($files as $file => $attributes) {
 			include ($_SERVER['DOCUMENT_ROOT'] . $directory . $file);
+			
+			# Stop if a limit is specified and it is reached
+			$i++;
+			if ($limit && $i == $limit) {break;}
 		}
 	}
 	
@@ -637,6 +655,7 @@ class directories
 		$tb = 1024 * $gb; // Terabyte
 		
 		# Get the file size
+		#!# This will generate an error if the file is huge - not really fixable though
 		$size = filesize ($file);
 		
 		# Give the appropriate measurement
