@@ -1,5 +1,13 @@
 <?php
 
+# Class to create various directory manipulation -related static methods
+# Version 1.0.0
+
+# Licence: GPL
+# (c) Martin Lucas-Smith, University of Cambridge
+# More info: http://download.geog.cam.ac.uk/projects/directories/
+
+
 # Ensure the pureContent framework is loaded and clean server globals
 require_once ('pureContent.php');
 
@@ -83,7 +91,7 @@ class directories
 	
 	
 	# Function to create a printed list of files
-	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*', ), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array ())
+	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*', ), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name')
 	{
 		# Obtain the current directory
 		$currentDirectory = rawurldecode ($_SERVER['REQUEST_URI']);
@@ -113,7 +121,15 @@ class directories
 		}
 		
 		# Sort the list alphabetically
-		uasort ($files, array ('directories', 'compare'));
+		switch ($sortByKey) {
+			case 'name':
+				$comparisonFunction = "return strcasecmp (\$a['{$sortByKey}'], \$b['{$sortByKey}']);";
+				break;
+			case 'time':
+				$comparisonFunction = "return (\$a['{$sortByKey}'] < \$b['{$sortByKey}']);";
+				break;
+		}
+		uasort ($files, create_function ('$a, $b', $comparisonFunction));
 		
 		# Start an HTML list
 		$html = "\n" . '<ul class="filelist">';
@@ -150,7 +166,9 @@ class directories
 			}
 			
 			# Add each file to the list, showing a trailing slash for directories if required
-			$html .= "\n\t" . '<li><a href="' . str_replace (array (' ', '#'), array ('%20', '%23') , htmlentities ($file)) . (($attributes['directory']) ? '/' : '') . '"' . ($attributes['extension'] == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlentities ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>' . (!$attributes['directory'] ? ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($attributes['extension'] == 'url' ? 'Link' : directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')' : '') . '</li>';
+			$html .= "\n\t" . '<li><a href="' . str_replace (array (' ', '#'), array ('%20', '%23') , htmlentities ($file)) . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($attributes['extension'] == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlentities ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
+			if (!$attributes['directory']) {$html .= ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($attributes['extension'] == 'url' ? 'Link' : directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')';}
+			$html .= '</li>';
 		}
 		
 		# Complete the list
@@ -163,14 +181,6 @@ class directories
 		
 		# Return the HTML
 		return $html;
-	}
-	
-	
-	# Helper function used for uasort to compare an array case-insensitively
-	function compare ($a, $b)
-	{
-		#!# Document what this does!
-		return strcasecmp ($a['name'], $b['name']);
 	}
 	
 	
@@ -328,24 +338,30 @@ class directories
 			'hqx' => 'zip.gif',
 			'htm' => 'html.gif',
 			'html' => 'html.gif',
-			'mht' => 'html.gif',
 			'js' => 'js.gif',
 			'jpg' => 'jpg.gif',
 			'jpeg' => 'jpg.gif',
 			'log' => 'notepad.gif',
 			'lnk' => 'link.gif',
 			'mdb' => 'mdb.gif',
+			'mht' => 'html.gif',
 			'mov' => 'quicktime.gif',
 			'mpa' => 'media.gif',
 			'mpeg' => 'media.gif',
+			'mp4' => 'quicktime.jpg',
 			'msg' => 'msg.gif',
 			'mtw' => 'minitab.gif',
+			'odb' => 'odb.gif',
+			'odp' => 'odp.gif',
+			'ods' => 'ods.gif',
+			'odt' => 'odt.gif',
 			'pdf' => 'acrobat.gif',
 			'pdx' => 'acrobatindex.gif',
 			'png' => 'gif.gif',
 			'ps' => 'ps.gif',
 			'psd' => 'psd.gif',
 			'ppt' => 'ppt.gif',
+			'pub' => 'publisher.gif',
 			'qt' => 'quicktime.jpg',
 			'rm' => 'real.gif',
 			'rtf' => 'word.gif',
@@ -531,7 +547,7 @@ class directories
 	
 	
 	# Function to get a list of the directories contained in a directory
-	function listContainedDirectories ($directory, $exclude = array ())
+	function listContainedDirectories ($directory, $exclude = array (), $requireMatch = false)
 	{
 		# Ensure the names to be excluded are an array
 		require_once ('application.php');
@@ -552,6 +568,11 @@ class directories
 			# Avoid non-directories
 			if (!is_dir ($directory . $file)) {continue;}
 			if (($file == '.') || ($file == '..')) {continue;}
+			
+			# Perform a match if required
+			if ($requireMatch) {
+				if (!ereg ($requireMatch, $file)) {continue;}
+			}
 			
 			# Avoid areas to be excluded
 			if (in_array ($file, $exclude)) {continue;}
@@ -670,8 +691,5 @@ class directories
 		}
 	}
 }
-
-
-
 
 ?>
