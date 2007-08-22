@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.1
+# Version 1.0.2
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -533,8 +533,9 @@ class directories
 					}
 				}
 				
-				# Add the file to the master list
-				$listing[] = ($includeRoot ? $start : '') . $directory . $file;
+				# Add the file to the master list. adding the root without a trailing slash
+				$choppedStartDirectory = ((substr ($start, -1) == '/') ? substr ($start, 0, -1) : $start);
+				$listing[] = ($includeRoot ? $choppedStartDirectory : '') . $directory . $file;
 			}
 		}
 		
@@ -543,6 +544,46 @@ class directories
 		
 		# Return the listing
 		return $listing;
+	}
+	
+	
+	# Function to turn an array like array ('/foo/*', '/bar/', '/foo/bar/*', '/file.html') into a flattened file listing, arranged as $location => $file
+	function flattenedFileListingFromArray ($locations, $root, $supportedFileTypes = array ())
+	{
+		# Create a flattened list of files
+		$allFiles = array ();
+		foreach ($locations as $location) {
+			
+			# Add files from a tree
+			if (substr ($location, -2) == '/*') {
+				$directory = substr ($location, 0, -1);
+				$files = directories::flattenedFileListing ($root . $directory, $supportedFileTypes, $includeRoot = true);
+				$allFiles = array_merge ($allFiles, $files);
+				
+			# Add files in a non-tree directory
+			} else if (substr ($location, -1) == '/') {
+				$directory = substr ($location, 0, -1);
+				$files = directories::listFiles ($directory, $supportedFileTypes, $directoryIsFromRoot = true);
+				$allFiles = array_merge ($allFiles, $files);
+				
+			# Add other files
+			} else {
+				$allFiles[] = $root . $location;
+			}
+		}
+		
+		# Rearrange to have as $directory => $location
+		$files = array ();
+		foreach ($allFiles as $index => $file) {
+			$location = ereg_replace ('^' . $root, '', $file);
+			$files[$location] = $file;
+		}
+		
+		# Sort the listing
+		ksort ($files);
+		
+		# Return the list
+		return $files;
 	}
 	
 	
