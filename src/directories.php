@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.2
+# Version 1.0.3
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -91,7 +91,7 @@ class directories
 	
 	
 	# Function to create a printed list of files
-	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*', ), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name')
+	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name')
 	{
 		# Obtain the current directory
 		$currentDirectory = rawurldecode ($_SERVER['REQUEST_URI']);
@@ -360,6 +360,7 @@ class directories
 			'png' => 'gif.gif',
 			'ps' => 'ps.gif',
 			'psd' => 'psd.gif',
+			'pps' => 'ppt.gif',
 			'ppt' => 'ppt.gif',
 			'pub' => 'publisher.gif',
 			'qt' => 'quicktime.jpg',
@@ -467,6 +468,9 @@ class directories
 		# Start a list of entries
 		$entries = array ();
 		
+		# End if empty structure
+		if (!is_array ($directories) || !$directories) {return array ();}
+		
 		# Loop through the directory structure
 		foreach ($directories as $directory => $contents) {
 			
@@ -492,7 +496,7 @@ class directories
 	
 	
 	# Function to get a flattened file listing ($start is non-slash terminated)
-	function flattenedFileListing ($start, $supportedFileTypes = array (), $includeRoot = true, $excludeFileTemplate = false)
+	function flattenedFileListing ($start, $supportedFileTypes = array (), $includeRoot = true, $excludeFileTemplate = false, $excludeContentsRegexp = false, $regexpAfterStart = false)
 	{
 		# Get the directory structure
 		$tree = directories::tree ($start . '/');
@@ -516,18 +520,34 @@ class directories
 				# Determine the location, and skip if its a directory
 				if ($attributes['type'] == 'dir') {continue;}
 				
-				# Exclude files of a particular size if necessary; check the size, then that it can be opened, then the contents for a match
-				if ($excludeFileTemplate) {
-					if ($attributes['size'] == strlen ($excludeFileTemplate)) {
+				# Skip if there is a regexp which matches
+				if ($regexpAfterStart) {
+					if (!ereg ($regexpAfterStart, $directory . $file)) {
+						continue;
+					}
+				}
+				
+				# File content checking types
+				if ($excludeContentsRegexp || ($excludeFileTemplate && ($attributes['size'] == strlen ($excludeFileTemplate)))) {
+					
+					# Attempt to open the file and get its contents
+					$fileToCompare = $start . $directory . $file;
+					if (is_readable ($fileToCompare)) {
+						$fileToCompareContents = file_get_contents ($fileToCompare);
 						
-						# Attempt to open the file
-						$fileToCompare = $start . $directory . $file;
-						if (is_readable ($fileToCompare)) {
-							$fileToCompareContents = file_get_contents ($fileToCompare);
-							
-							# Compare the contents
-							if (md5 ($fileToCompareContents) == md5 ($excludeFileTemplate)) {
+						# Regexp check
+						if ($excludeContentsRegexp) {
+							if (preg_match ("|({$excludeContentsRegexp})|DsiU", $fileToCompareContents, $matches)) {
 								continue;
+							}
+						}
+						
+						# Exclude files of a particular size if necessary; check the size, then that it can be opened, then the contents for a match
+						if ($excludeFileTemplate) {
+							if ($attributes['size'] == strlen ($excludeFileTemplate)) {
+								if (md5 ($fileToCompareContents) == md5 ($excludeFileTemplate)) {
+									continue;
+								}
 							}
 						}
 					}
