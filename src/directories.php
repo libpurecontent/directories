@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.3
+# Version 1.0.4
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -90,8 +90,8 @@ class directories
 	}
 	
 	
-	# Function to create a printed list of files
-	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name')
+	# Function to get the file list
+	function getFileListing ($hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $showOnly = array (), $sortByKey = 'name', $includeDirectories = true)
 	{
 		# Obtain the current directory
 		$currentDirectory = rawurldecode ($_SERVER['REQUEST_URI']);
@@ -103,9 +103,19 @@ class directories
 		# Construct an array of files in the directory
 		$files = directories::listFiles ($currentDirectory);
 		
-		# If a list of areas is given, show only those allowed
-		if ($showOnly) {
-			foreach ($files as $file => $attributes) {
+		# Loop through each file
+		foreach ($files as $file => $attributes) {
+			
+			# Remove directories if required
+			if (!$includeDirectories) {
+				if ($attributes['type'] == 'dir') {
+					unset ($files[$file]);
+				}
+			}
+			
+			
+			# If a list of areas is given, show only those allowed
+			if ($showOnly) {
 				if (!in_array ($currentDirectory . $file, $showOnly)) {
 					unset ($files[$file]);
 				}
@@ -115,27 +125,43 @@ class directories
 		# Remove files which should be hidden
 		$files = directories::removeHiddenFiles ($hiddenFiles, $files, $currentDirectory, $caseSensitiveMatching);
 		
+		# Sort the list alphabetically
+		if ($files) {
+			switch ($sortByKey) {
+				case 'name':
+					$comparisonFunction = "return strcasecmp (\$a['{$sortByKey}'], \$b['{$sortByKey}']);";
+					break;
+				case 'time':
+					$comparisonFunction = "return (\$a['{$sortByKey}'] < \$b['{$sortByKey}']);";
+					break;
+			}
+			uasort ($files, create_function ('$a, $b', $comparisonFunction));
+		}
+		
+		# Return the list
+		return $files;
+	}
+	
+	
+	# Function to create a printed list of files
+	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name')
+	{
+		# Get the file list
+		$files = directories::getFileListing ($hiddenFiles, $caseSensitiveMatching, $showOnly, $sortByKey);
+		
 		# If there are no documents, state this
 		if (!$files) {
 			return $html = '<p>There are no documents available here at present.</p>';
 		}
-		
-		# Sort the list alphabetically
-		switch ($sortByKey) {
-			case 'name':
-				$comparisonFunction = "return strcasecmp (\$a['{$sortByKey}'], \$b['{$sortByKey}']);";
-				break;
-			case 'time':
-				$comparisonFunction = "return (\$a['{$sortByKey}'] < \$b['{$sortByKey}']);";
-				break;
-		}
-		uasort ($files, create_function ('$a, $b', $comparisonFunction));
 		
 		# Start an HTML list
 		$html = "\n" . '<ul class="filelist">';
 		
 		# Import the array of icons
 		$extensions = directories::defineSupportedExtensions ();
+		
+		# Obtain the current directory
+		$currentDirectory = rawurldecode ($_SERVER['REQUEST_URI']);
 		
 		# Loop through the list of files
 		foreach ($files as $file => $attributes) {
