@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.4
+# Version 1.0.5
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -594,7 +594,7 @@ class directories
 	
 	
 	# Function to turn an array like array ('/foo/*', '/bar/', '/foo/bar/*', '/file.html') into a flattened file listing, arranged as $location => $file
-	function flattenedFileListingFromArray ($locations, $root, $supportedFileTypes = array ())
+	function flattenedFileListingFromArray ($locations, $root, $supportedFileTypes = array (), $includeRoot = true, $excludeFileTemplate = false, $excludeContentsRegexp = false, $regexpAfterStart = false)
 	{
 		# Create a flattened list of files
 		$allFiles = array ();
@@ -603,7 +603,7 @@ class directories
 			# Add files from a tree
 			if (substr ($location, -2) == '/*') {
 				$directory = substr ($location, 0, -1);
-				$files = directories::flattenedFileListing ($root . $directory, $supportedFileTypes, $includeRoot = true);
+				$files = directories::flattenedFileListing ($root . $directory, $supportedFileTypes, $includeRoot = true, $excludeFileTemplate, $excludeContentsRegexp, $regexpAfterStart);
 				$allFiles = array_merge ($allFiles, $files);
 				
 			# Add files in a non-tree directory
