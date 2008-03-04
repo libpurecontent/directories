@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.5
+# Version 1.0.6
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -82,7 +82,7 @@ class directories
 		# Construct the link list
 		$html = '';
 		foreach ($links as $link => $name) {
-			$html .= '<a href="' . str_replace (' ', '%20' , htmlentities ($link)) . '">' . str_replace (' ', '&nbsp;' , htmlentities ($name)) . '/</a>';
+			$html .= '<a href="' . str_replace (' ', '%20' , htmlspecialchars ($link)) . '">' . str_replace (' ', '&nbsp;' , htmlspecialchars ($name)) . '/</a>';
 		}
 		
 		# Return the HTML
@@ -192,7 +192,7 @@ class directories
 			}
 			
 			# Add each file to the list, showing a trailing slash for directories if required
-			$html .= "\n\t" . '<li><a href="' . rawurlencode ($file) . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($attributes['extension'] == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlentities ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
+			$html .= "\n\t" . '<li><a href="' . rawurlencode ($file) . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($attributes['extension'] == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlspecialchars ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
 			if (!$attributes['directory']) {$html .= ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($attributes['extension'] == 'url' ? 'Link' : directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')';}
 			$html .= '</li>';
 		}
