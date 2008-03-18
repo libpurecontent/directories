@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.6
+# Version 1.0.7
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -282,7 +282,7 @@ class directories
 		if (!$files) {return $cleanedFiles;}
 		
 		# Construct a list of files to remain hidden
-		$osFiles = array ('recycler/', 'RECYCLER/', );
+		$osFiles = array ('recycler/', 'RECYCLER/', 'recycled/', '.AppleDouble/');
 		$hiddenFiles = array_merge ($hiddenFiles, $osFiles);
 		
 		# Loop through each file in the supplied list
