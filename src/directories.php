@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.7
+# Version 1.0.8
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -101,7 +101,9 @@ class directories
 		if ($_SERVER['QUERY_STRING'] != '') {$currentDirectory = substr ($currentDirectory, 0, (0 - (strlen ($_SERVER['QUERY_STRING']) + 1)));}
 		
 		# Construct an array of files in the directory
-		$files = directories::listFiles ($currentDirectory);
+		if (!$files = directories::listFiles ($currentDirectory)) {
+			return array ();
+		}
 		
 		# Loop through each file
 		foreach ($files as $file => $attributes) {
