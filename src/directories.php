@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.8
+# Version 1.0.9
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -189,12 +189,15 @@ class directories
 				foreach ($lines as $line) {
 					if (ereg ('^URL=(.*)', $line, $matches)) {
 						$file = $matches[1];
+						$link = str_replace ('%2f', '/', rawurldecode ($file));
 					}
 				}
+			} else {
+				$link = rawurlencode ($file);
 			}
 			
 			# Add each file to the list, showing a trailing slash for directories if required
-			$html .= "\n\t" . '<li><a href="' . rawurlencode ($file) . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($attributes['extension'] == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlspecialchars ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
+			$html .= "\n\t" . '<li><a href="' . $link . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($attributes['extension'] == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlspecialchars ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
 			if (!$attributes['directory']) {$html .= ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($attributes['extension'] == 'url' ? 'Link' : directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')';}
 			$html .= '</li>';
 		}
