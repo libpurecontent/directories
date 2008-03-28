@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.9
+# Version 1.0.10
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -98,6 +98,7 @@ class directories
 		
 		# Remove the query string
 		#!# Really nasty? to be improved
+		#!# This could fail because the rawurldecode could change the query string
 		if ($_SERVER['QUERY_STRING'] != '') {$currentDirectory = substr ($currentDirectory, 0, (0 - (strlen ($_SERVER['QUERY_STRING']) + 1)));}
 		
 		# Construct an array of files in the directory
@@ -146,7 +147,7 @@ class directories
 	
 	
 	# Function to create a printed list of files
-	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name')
+	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name', $directoriesOnly = false)
 	{
 		# Get the file list
 		$files = directories::getFileListing ($hiddenFiles, $caseSensitiveMatching, $showOnly, $sortByKey);
@@ -162,11 +163,16 @@ class directories
 		# Import the array of icons
 		$extensions = directories::defineSupportedExtensions ();
 		
-		# Obtain the current directory
-		$currentDirectory = rawurldecode ($_SERVER['REQUEST_URI']);
+		# Obtain the current directory, removing the query string
+		$requestUri = $_SERVER['REQUEST_URI'];
+		if ($_SERVER['QUERY_STRING']) {$requestUri = ereg_replace ('\?' . $_SERVER['QUERY_STRING'] . '$', '', $requestUri);}
+		$currentDirectory = rawurldecode ($requestUri);
 		
 		# Loop through the list of files
 		foreach ($files as $file => $attributes) {
+			
+			# If required, skip if it's a directory
+			if ($directoriesOnly && !$attributes['directory']) {continue;}
 			
 			# If not matching case sensitively, convert the extensions to lower case
 			if (!$caseSensitiveMatching) {$attributes['extension'] = strtolower ($attributes['extension']);}
@@ -419,7 +425,7 @@ class directories
 	
 	# Wrapper function to create a formatted listing
 	#!# Need to add inheritableExtensions support e.g. .html.old
-	function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt')
+	function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1')
 	{
 		# Get the contents of the title file
 		$titleFile = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'] . $titleFile;
@@ -428,11 +434,12 @@ class directories
 		}
 		
 		# Start the page
-		$html  = "\n\n" . '<h1>' . (isSet ($contents) ? $contents : '&nbsp;') . '</h1>';
+		$html  = '';
+		if ($heading) {$html .= "\n\n" . "<{$heading}>" . (isSet ($contents) ? $contents : '&nbsp;') . "</{$heading}>";}
 		$html .= "\n\n" . '<p><a href="../"><em>&lt; Go back</em></a></p>';
 		
 		# Show the directory listing
-		$html .= directories::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching);
+		$html .= directories::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, true, true, false, array (), 'name', $directoriesOnly);
 		
 		# Return the HTML
 		return $html;
