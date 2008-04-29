@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.10
+# Version 1.0.11
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -58,7 +58,7 @@ class directories
 	# Function to create a clickable trail of directory names
 	function trail ()
 	{
-		# Replace double-slashes in the path each with a single slash
+		# Get the current path
 		$path = rawurldecode ($_SERVER['REQUEST_URI']);
 		
 		# Split the subdirectories into an array
@@ -93,13 +93,10 @@ class directories
 	# Function to get the file list
 	function getFileListing ($hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $showOnly = array (), $sortByKey = 'name', $includeDirectories = true)
 	{
-		# Obtain the current directory
-		$currentDirectory = rawurldecode ($_SERVER['REQUEST_URI']);
-		
-		# Remove the query string
-		#!# Really nasty? to be improved
-		#!# This could fail because the rawurldecode could change the query string
+		# Obtain the current directory, chopping off the query string
+		$currentDirectory = $_SERVER['REQUEST_URI'];
 		if ($_SERVER['QUERY_STRING'] != '') {$currentDirectory = substr ($currentDirectory, 0, (0 - (strlen ($_SERVER['QUERY_STRING']) + 1)));}
+		$currentDirectory = rawurldecode ($currentDirectory);
 		
 		# Construct an array of files in the directory
 		if (!$files = directories::listFiles ($currentDirectory)) {
@@ -163,10 +160,10 @@ class directories
 		# Import the array of icons
 		$extensions = directories::defineSupportedExtensions ();
 		
-		# Obtain the current directory, removing the query string
-		$requestUri = $_SERVER['REQUEST_URI'];
-		if ($_SERVER['QUERY_STRING']) {$requestUri = ereg_replace ('\?' . $_SERVER['QUERY_STRING'] . '$', '', $requestUri);}
-		$currentDirectory = rawurldecode ($requestUri);
+		# Obtain the current directory, chopping off the query string
+		$currentDirectory = $_SERVER['REQUEST_URI'];
+		if ($_SERVER['QUERY_STRING'] != '') {$currentDirectory = substr ($currentDirectory, 0, (0 - (strlen ($_SERVER['QUERY_STRING']) + 1)));}
+		$currentDirectory = rawurldecode ($currentDirectory);
 		
 		# Loop through the list of files
 		foreach ($files as $file => $attributes) {
