@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.11
+# Version 1.0.12
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -144,7 +144,7 @@ class directories
 	
 	
 	# Function to create a printed list of files
-	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name', $directoriesOnly = false)
+	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name', $directoriesOnly = false, $includeGallery = false)
 	{
 		# Get the file list
 		$files = directories::getFileListing ($hiddenFiles, $caseSensitiveMatching, $showOnly, $sortByKey);
@@ -212,6 +212,12 @@ class directories
 			<li>To <strong>open</strong> a file or directory, left-click (PC) or click (Mac) on its name.</li>
 			<li>To <strong>save</strong> a file, right-click (PC) or control-click (Mac) on its name and select 'Save Target As...'.</li>
 		</ul>";
+		
+		# Show photo thumbnails if required
+		if ($includeGallery) {
+			require_once ('image.php');
+			$html .= image::gallery (true, false, $size = 250);
+		}
 		
 		# Return the HTML
 		return $html;
@@ -422,7 +428,7 @@ class directories
 	
 	# Wrapper function to create a formatted listing
 	#!# Need to add inheritableExtensions support e.g. .html.old
-	function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1')
+	function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1', $includeGallery = false)
 	{
 		# Get the contents of the title file
 		$titleFile = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'] . $titleFile;
@@ -436,7 +442,7 @@ class directories
 		$html .= "\n\n" . '<p><a href="../"><em>&lt; Go back</em></a></p>';
 		
 		# Show the directory listing
-		$html .= directories::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, true, true, false, array (), 'name', $directoriesOnly);
+		$html .= directories::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, true, true, false, array (), 'name', $directoriesOnly, $includeGallery);
 		
 		# Return the HTML
 		return $html;
