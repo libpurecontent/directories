@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.12
+# Version 1.0.13
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -225,7 +225,7 @@ class directories
 	
 	
 	# Function to obtain an array of file details from a directory
-	function listFiles ($directory, $supportedFileTypes = array (), $directoryIsFromRoot = false)
+	function listFiles ($directory, $supportedFileTypes = array (), $directoryIsFromRoot = false, $skipUnreadableFiles = true)
 	{
 		# Append the document root to the current directory (for the lifetime of this function only)
 		if (!$directoryIsFromRoot) {$directory = $_SERVER['DOCUMENT_ROOT'] . $directory;}
@@ -260,11 +260,15 @@ class directories
 					require_once ('application.php');
 					$supported = (($allowSupportedFileTypesOnly && (!application::iin_array ($extension, $supportedFileTypes))) ? false : true);
 					
+					# Skip a file if it is not readable
+					if ($skipUnreadableFiles) {
+						if (!is_readable ($directory . $file)) {continue;}
+					}
+					
 					# Assign the file to the array if required
 					if ($supported) {
 						$files[$file] = array (
 							'name' => (strstr ($file, '.') ? substr ($file, 0, strrpos ($file, '.')) : $file),
-							#!# This section will generate errors if the file is huge - not really fixable though
 							'size' => filesize ($directory . $file),
 							'time' => filemtime ($directory . $file),
 							'type' => filetype ($directory . $file),
@@ -453,7 +457,7 @@ class directories
 	function tree ($directory, $exclude = array ()/*, $onlyInclude = array ()*/)
 	{
 		# Make sure it's a directory
-		if (!is_dir ($directory)) {return false;}
+		if (!is_dir ($directory)) {return array ();}
 		
 		# Ensure supplied file lists are arrays
 		require_once ('application.php');
