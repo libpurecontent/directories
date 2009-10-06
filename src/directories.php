@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.13
+# Version 1.0.14
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -567,7 +567,8 @@ class directories
 				
 				# Skip if there is a regexp which matches
 				if ($regexpAfterStart) {
-					if (!ereg ($regexpAfterStart, $directory . $file)) {
+					$pregDelimeter = '@';
+					if (!preg_match ($pregDelimeter . $regexpAfterStart . $pregDelimeter, $directory . $file)) {
 						continue;
 					}
 				}
@@ -640,7 +641,8 @@ class directories
 		# Rearrange to have as $directory => $location
 		$files = array ();
 		foreach ($allFiles as $index => $file) {
-			$location = ereg_replace ('^' . $root, '', $file);
+			$pregDelimeter = '@';
+			$location = preg_replace ($pregDelimeter . '^' . $root . $pregDelimeter, '', $file);
 			$files[$location] = $file;
 		}
 		
