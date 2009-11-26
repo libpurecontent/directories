@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.14
+# Version 1.0.15
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -262,6 +262,7 @@ class directories
 					
 					# Skip a file if it is not readable
 					if ($skipUnreadableFiles) {
+						#!# Fails if directory has no trailing slash
 						if (!is_readable ($directory . $file)) {continue;}
 					}
 					
@@ -375,6 +376,7 @@ class directories
 			'csv' => 'excel.gif',
 			'dat' => 'notepad.gif',
 			'doc' => 'word.gif',
+			'docx' => 'docx.gif',
 			'dot' => 'wordtemplate.gif',
 			'gif' => 'gif.gif',
 			'eps' => 'psd.gif',
@@ -406,6 +408,7 @@ class directories
 			'psd' => 'psd.gif',
 			'pps' => 'ppt.gif',
 			'ppt' => 'ppt.gif',
+			'pptx' => 'pptx.gif',
 			'pub' => 'publisher.gif',
 			'qt' => 'quicktime.jpg',
 			'rm' => 'real.gif',
@@ -424,6 +427,7 @@ class directories
 			'wpd' => 'wordperfect.gif',
 			'wri' => 'wri.gif',
 			'xls' => 'excel.gif',
+			'xlsx' => 'xlsx.gif',
 			'xlt' => 'exceltemplate.gif',
 			'zip' => 'zip.gif',
 		);
