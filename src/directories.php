@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.15
+# Version 1.0.16
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -211,6 +211,7 @@ class directories
 		<ul class="filelistnotes">' . "
 			<li>To <strong>open</strong> a file or directory, left-click (PC) or click (Mac) on its name.</li>
 			<li>To <strong>save</strong> a file, right-click (PC) or control-click (Mac) on its name and select 'Save Target As...'.</li>
+			<li>For docx/xlsx/pptx documents, you may need the free <a href=\"http://www.google.com/search?q=Microsoft+Office+Compatibility+Pack\" target=\"_blank\">Office Compatibility Pack</a> if you have an older version of MS Office</li>
 		</ul>";
 		
 		# Show photo thumbnails if required
@@ -401,7 +402,7 @@ class directories
 			'odp' => 'odp.gif',
 			'ods' => 'ods.gif',
 			'odt' => 'odt.gif',
-			'pdf' => 'acrobat.gif',
+			'pdf' => 'pdf.gif',
 			'pdx' => 'acrobatindex.gif',
 			'png' => 'gif.gif',
 			'ps' => 'ps.gif',
