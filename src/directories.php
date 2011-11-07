@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.16
+# Version 1.0.17
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -154,6 +154,8 @@ class directories
 			return $html = '<p>There are no documents available here at present.</p>';
 		}
 		
+		// $files = application::knatsort ($files);
+		
 		# Start an HTML list
 		$html = "\n" . '<ul class="filelist">';
 		
@@ -172,21 +174,22 @@ class directories
 			if ($directoriesOnly && !$attributes['directory']) {continue;}
 			
 			# If not matching case sensitively, convert the extensions to lower case
-			if (!$caseSensitiveMatching) {$attributes['extension'] = strtolower ($attributes['extension']);}
+			$extension = $attributes['extension'];
+			if (!$caseSensitiveMatching) {$extension = strtolower ($attributes['extension']);}
 			
 			# Assemble the icon HTML for the list
-			$iconFile = ((array_key_exists ($attributes['extension'], $extensions)) ? $extensions[$attributes['extension']] : (($attributes['directory']) ? $extensions['_folder'] : $extensions['_unknown']));
+			$iconFile = ((array_key_exists ($extension, $extensions)) ? $extensions[$extension] : (($attributes['directory']) ? $extensions['_folder'] : $extensions['_unknown']));
 			$serverFile = ($iconsServerPath . $iconFile);
 			if (file_exists ($serverFile)) {
 				list ($width, $height, $type, $iconSizeHtml) = getimagesize ($serverFile);
 			} else {
 				$iconSizeHtml = '';
 			}
-			$titleHtml =  ((array_key_exists ($attributes['extension'], $extensions)) ? ".{$attributes['extension']} file" : (($attributes['directory']) ? 'Folder' : 'Unknown file type'));
+			$titleHtml =  ((array_key_exists ($extension, $extensions)) ? ".{$attributes['extension']} file" : (($attributes['directory']) ? 'Folder' : 'Unknown file type'));
 			$iconHtml = '<img src="' . $iconsDirectory . $iconFile . '" alt="' . $titleHtml . '" ' . $iconSizeHtml . ' />';
 			
 			# For a .url link file, open the file and get the contents of the line starting URL=
-			if ($attributes['extension'] == 'url') {
+			if ($extension == 'url') {
 				$linkFileContents = file_get_contents ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file);
 				$lines = explode ("\n", $linkFileContents);
 				foreach ($lines as $line) {
@@ -200,8 +203,8 @@ class directories
 			}
 			
 			# Add each file to the list, showing a trailing slash for directories if required
-			$html .= "\n\t" . '<li><a href="' . $link . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($attributes['extension'] == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlspecialchars ($attributes['name'] . (($fileExtensionsVisible && ($attributes['extension'] != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
-			if (!$attributes['directory']) {$html .= ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($attributes['extension'] == 'url' ? 'Link' : directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')';}
+			$html .= "\n\t" . '<li><a href="' . $link . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($extension == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlspecialchars ($attributes['name'] . (($fileExtensionsVisible && ($extension != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
+			if (!$attributes['directory']) {$html .= ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($extension == 'url' ? 'Link' : directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')';}
 			$html .= '</li>';
 		}
 		
