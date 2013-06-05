@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.0.17
+# Version 1.1.0
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -16,7 +16,7 @@ require_once ('pureContent.php');
 class directories
 {
 	# Function to parse and clean up a specified directory
-	function parse ($directory)
+	public static function parse ($directory)
 	{
 		# Replace any \ with / for both the input directory and the document root
 		$directory = str_replace ('\\', '/', $directory);
@@ -56,7 +56,7 @@ class directories
 	
 	
 	# Function to create a clickable trail of directory names
-	function trail ()
+	public static function trail ()
 	{
 		# Get the current path
 		$path = rawurldecode ($_SERVER['REQUEST_URI']);
@@ -91,7 +91,7 @@ class directories
 	
 	
 	# Function to get the file list
-	function getFileListing ($hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $showOnly = array (), $sortByKey = 'name', $includeDirectories = true)
+	public static function getFileListing ($hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $showOnly = array (), $sortByKey = 'name', $includeDirectories = true)
 	{
 		# Obtain the current directory, chopping off the query string
 		$currentDirectory = $_SERVER['REQUEST_URI'];
@@ -99,7 +99,7 @@ class directories
 		$currentDirectory = rawurldecode ($currentDirectory);
 		
 		# Construct an array of files in the directory
-		if (!$files = directories::listFiles ($currentDirectory)) {
+		if (!$files = self::listFiles ($currentDirectory)) {
 			return array ();
 		}
 		
@@ -123,7 +123,7 @@ class directories
 		}
 		
 		# Remove files which should be hidden
-		$files = directories::removeHiddenFiles ($hiddenFiles, $files, $currentDirectory, $caseSensitiveMatching);
+		$files = self::removeHiddenFiles ($hiddenFiles, $files, $currentDirectory, $caseSensitiveMatching);
 		
 		# Sort the list alphabetically
 		if ($files) {
@@ -144,10 +144,10 @@ class directories
 	
 	
 	# Function to create a printed list of files
-	function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name', $directoriesOnly = false, $includeGallery = false)
+	public static function listing ($iconsDirectory = '/images/fileicons/', $iconsServerPath = '/websites/common/images/fileicons/', $hiddenFiles = array ('.ht*'), $caseSensitiveMatching = true, $trailingSlashVisible = true, $fileExtensionsVisible = true, $wildcardMatchesZeroCharacters = false, $showOnly = array (), $sortByKey = 'name', $directoriesOnly = false, $includeGallery = false)
 	{
 		# Get the file list
-		$files = directories::getFileListing ($hiddenFiles, $caseSensitiveMatching, $showOnly, $sortByKey);
+		$files = self::getFileListing ($hiddenFiles, $caseSensitiveMatching, $showOnly, $sortByKey);
 		
 		# If there are no documents, state this
 		if (!$files) {
@@ -160,7 +160,7 @@ class directories
 		$html = "\n" . '<ul class="filelist">';
 		
 		# Import the array of icons
-		$extensions = directories::defineSupportedExtensions ();
+		$extensions = self::defineSupportedExtensions ();
 		
 		# Obtain the current directory, chopping off the query string
 		$currentDirectory = $_SERVER['REQUEST_URI'];
@@ -204,7 +204,7 @@ class directories
 			
 			# Add each file to the list, showing a trailing slash for directories if required
 			$html .= "\n\t" . '<li><a href="' . $link . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($extension == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlspecialchars ($attributes['name'] . (($fileExtensionsVisible && ($extension != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
-			if (!$attributes['directory']) {$html .= ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($extension == 'url' ? 'Link' : directories::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')';}
+			if (!$attributes['directory']) {$html .= ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($extension == 'url' ? 'Link' : self::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')';}
 			$html .= '</li>';
 		}
 		
@@ -229,7 +229,7 @@ class directories
 	
 	
 	# Function to obtain an array of file details from a directory
-	function listFiles ($directory, $supportedFileTypes = array (), $directoryIsFromRoot = false, $skipUnreadableFiles = true)
+	public static function listFiles ($directory, $supportedFileTypes = array (), $directoryIsFromRoot = false, $skipUnreadableFiles = true)
 	{
 		# Append the document root to the current directory (for the lifetime of this function only)
 		if (!$directoryIsFromRoot) {$directory = $_SERVER['DOCUMENT_ROOT'] . $directory;}
@@ -296,7 +296,7 @@ class directories
 	
 	
 	# Function to remove files specified as hidden from a list of files
-	function removeHiddenFiles ($hiddenFiles, $files, $currentDirectory, $caseSensitiveMatching = true)
+	public static function removeHiddenFiles ($hiddenFiles, $files, $currentDirectory, $caseSensitiveMatching = true)
 	{
 		# Start an array of cleaned files
 		$cleanedFiles = array ();
@@ -366,7 +366,7 @@ class directories
 	
 	
 	# List the supported file extensions and their associated icons
-	function defineSupportedExtensions ()
+	public static function defineSupportedExtensions ()
 	{
 		return $extensions = array (
 			'_folder' => 'folder.gif',
@@ -440,7 +440,7 @@ class directories
 	
 	# Wrapper function to create a formatted listing
 	#!# Need to add inheritableExtensions support e.g. .html.old
-	function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1', $includeGallery = false)
+	public static function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1', $includeGallery = false)
 	{
 		# Get the contents of the title file
 		$titleFile = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'] . $titleFile;
@@ -454,7 +454,7 @@ class directories
 		$html .= "\n\n" . '<p><a href="../"><em>&lt; Go back</em></a></p>';
 		
 		# Show the directory listing
-		$html .= directories::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, true, true, false, array (), 'name', $directoriesOnly, $includeGallery);
+		$html .= self::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, true, true, false, array (), 'name', $directoriesOnly, $includeGallery);
 		
 		# Return the HTML
 		return $html;
@@ -462,7 +462,7 @@ class directories
 	
 	
 	# Function to get directory structure (but not contents)
-	function tree ($directory, $exclude = array ()/*, $onlyInclude = array ()*/)
+	public static function tree ($directory, $exclude = array ()/*, $onlyInclude = array ()*/)
 	{
 		# Make sure it's a directory
 		if (!is_dir ($directory)) {return array ();}
@@ -489,7 +489,7 @@ class directories
 				
 				# If the item is an array, get its contents
 				if (is_dir ($directory . $item)) {
-					$contents[$item] = directories::tree ($directory . $item . '/', $exclude/*, $onlyInclude*/);
+					$contents[$item] = self::tree ($directory . $item . '/', $exclude/*, $onlyInclude*/);
 					
 				} /* else {
 					
@@ -516,7 +516,7 @@ class directories
 	
 	
 	# Function to flatten a directory structure
-	function flatten ($directories, $startPoint = '/')
+	public static function flatten ($directories, $startPoint = '/')
 	{
 		# Start a list of entries
 		$entries = array ();
@@ -535,7 +535,7 @@ class directories
 			
 			# If there are contents, recurse
 			if ($contents) {
-				$subdirectories = directories::flatten ($contents, $entry);
+				$subdirectories = self::flatten ($contents, $entry);
 				$entries = array_merge ($entries, $subdirectories);
 			}
 		}
@@ -549,13 +549,13 @@ class directories
 	
 	
 	# Function to get a flattened file listing ($start is non-slash terminated)
-	function flattenedFileListing ($start, $supportedFileTypes = array (), $includeRoot = true, $excludeFileTemplate = false, $excludeContentsRegexp = false, $regexpAfterStart = false)
+	public static function flattenedFileListing ($start, $supportedFileTypes = array (), $includeRoot = true, $excludeFileTemplate = false, $excludeContentsRegexp = false, $regexpAfterStart = false)
 	{
 		# Get the directory structure
-		$tree = directories::tree ($start . '/');
+		$tree = self::tree ($start . '/');
 		
 		# Flatten the directory structure
-		$directories = directories::flatten ($tree);
+		$directories = self::flatten ($tree);
 		
 		# Add the root path to the tree
 		array_unshift ($directories, '/');
@@ -565,7 +565,7 @@ class directories
 		foreach ($directories as $directory) {
 			
 			# Get the files in this directory, and skip if none in the directory
-			if (!$files = directories::listFiles ($start . $directory, $supportedFileTypes, true)) {continue;}
+			if (!$files = self::listFiles ($start . $directory, $supportedFileTypes, true)) {continue;}
 			
 			# Add each file to the master list
 			foreach ($files as $file => $attributes) {
@@ -622,7 +622,7 @@ class directories
 	
 	
 	# Function to turn an array like array ('/foo/*', '/bar/', '/foo/bar/*', '/file.html') into a flattened file listing, arranged as $location => $file
-	function flattenedFileListingFromArray ($locations, $root, $supportedFileTypes = array (), $includeRoot = true, $excludeFileTemplate = false, $excludeContentsRegexp = false, $regexpAfterStart = false)
+	public static function flattenedFileListingFromArray ($locations, $root, $supportedFileTypes = array (), $includeRoot = true, $excludeFileTemplate = false, $excludeContentsRegexp = false, $regexpAfterStart = false)
 	{
 		# Create a flattened list of files
 		$allFiles = array ();
@@ -631,13 +631,13 @@ class directories
 			# Add files from a tree
 			if (substr ($location, -2) == '/*') {
 				$directory = substr ($location, 0, -1);
-				$files = directories::flattenedFileListing ($root . $directory, $supportedFileTypes, $includeRoot = true, $excludeFileTemplate, $excludeContentsRegexp, $regexpAfterStart);
+				$files = self::flattenedFileListing ($root . $directory, $supportedFileTypes, $includeRoot = true, $excludeFileTemplate, $excludeContentsRegexp, $regexpAfterStart);
 				$allFiles = array_merge ($allFiles, $files);
 				
 			# Add files in a non-tree directory
 			} else if (substr ($location, -1) == '/') {
 				$directory = substr ($location, 0, -1);
-				$files = directories::listFiles ($directory, $supportedFileTypes, $directoryIsFromRoot = true);
+				$files = self::listFiles ($directory, $supportedFileTypes, $directoryIsFromRoot = true);
 				$allFiles = array_merge ($allFiles, $files);
 				
 			# Add other files
@@ -663,7 +663,7 @@ class directories
 	
 	
 	# Function to get a list of the directories contained in a directory
-	function listContainedDirectories ($directory, $exclude = array (), $requireMatch = false)
+	public static function listContainedDirectories ($directory, $exclude = array (), $requireMatch = false)
 	{
 		# Ensure the names to be excluded are an array
 		require_once ('application.php');
@@ -709,22 +709,22 @@ class directories
 	
 	
 	# Function to clean up the directory structure by removing empty directories
-	function listEmptyDirectories ($start)
+	public static function listEmptyDirectories ($start)
 	{
 		# Ensure the start point exists
 		if (!is_dir ($start)) {return false;}
 		
 		# Get the directory structure
-		$tree = directories::tree ($start . '/');
+		$tree = self::tree ($start . '/');
 		
 		# Flatten the directory structure
-		$directories = directories::flatten ($tree);
+		$directories = self::flatten ($tree);
 		
 		# Loop through each directory and create a list of empty directories
 		$emptyDirectories = array ();
 		foreach ($directories as $directory) {
 			$serverDirectory = $start . $directory;
-			if (!$files = directories::listFiles ($serverDirectory, array (), $directoryIsFromRoot = true)) {
+			if (!$files = self::listFiles ($serverDirectory, array (), $directoryIsFromRoot = true)) {
 				$emptyDirectories[] = $serverDirectory;
 			}
 		}
@@ -735,10 +735,10 @@ class directories
 	
 	
 	# Function to delete empty directories
-	function deleteEmptyDirectories ($start)
+	public static function deleteEmptyDirectories ($start)
 	{
 		# Get the empty directories
-		$emptyDirectories = directories::listEmptyDirectories ($start);
+		$emptyDirectories = self::listEmptyDirectories ($start);
 		
 		# Delete each directory
 		$problemsFound = false;
@@ -756,13 +756,13 @@ class directories
 	
 	
 	# Function to show all the news articles (html files) in a directory
-	function showNewsArchive ($directory, $excludeFiles, $limit = false)
+	public static function showNewsArchive ($directory, $excludeFiles, $limit = false)
 	{
 		# Get the file listing
-		$files = directories::listFiles ($directory, 'html');
+		$files = self::listFiles ($directory, 'html');
 		
 		# Remove hidden files
-		$files = directories::removeHiddenFiles ($excludeFiles, $files, $directory);
+		$files = self::removeHiddenFiles ($excludeFiles, $files, $directory);
 		
 		# Sort the files
 		ksort ($files);
@@ -783,7 +783,7 @@ class directories
 	
 	
 	# Create a function to get the file size
-	function fileSizeFormatted ($file)
+	public static function fileSizeFormatted ($file)
 	{
 		# Define size shortcuts
 		$kb = 1024;       // Kilobyte
