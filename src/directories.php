@@ -1,11 +1,14 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.1.0
+# Version 1.1.1
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
 # More info: http://download.geog.cam.ac.uk/projects/directories/
+
+
+#!# These functions need a good tidy-up - there is a lot of duplication of similar functions each with different quirks, some of which work recursively and others not; these should be all combined into a single super-function with options
 
 
 # Ensure the pureContent framework is loaded and clean server globals
@@ -16,6 +19,7 @@ require_once ('pureContent.php');
 class directories
 {
 	# Function to parse and clean up a specified directory
+	#!# This function is very grubby and should be tightened up for the actual use-case(s) and rewritten
 	public static function parse ($directory)
 	{
 		# Replace any \ with / for both the input directory and the document root
@@ -35,11 +39,15 @@ class directories
 			
 			# If the directory neither starts with a . or the document root, prepend a / because the document root will require this
 			#!# There is an issue on Windows where a different drive is specified, e.g. X:\
-			if (!ereg (('^' . $documentRoot), $directory)) {$directory = '/' . $directory;}
+			$delimiter = '@';
+			$startsWithDocumentRoot = (preg_match ($delimiter . '^' . addcslashes ($documentRoot, $delimiter) . $delimiter, $directory));
+			if (!$startsWithDocumentRoot) {$directory = '/' . $directory;}
 		}
 		
 		# If the directory begins with the document root, strip that off from the start
-		if (ereg (('^' . $documentRoot), $directory)) {$directory = substr ($directory, strlen ($documentRoot));}
+		$delimiter = '@';
+		$startsWithDocumentRoot = (preg_match ($delimiter . '^' . addcslashes ($documentRoot, $delimiter) . $delimiter, $directory));
+		if ($startsWithDocumentRoot) {$directory = substr ($directory, strlen ($documentRoot));}
 		
 		# Ensure the directory ends with a slash
 		if (substr ($directory, -1) != '/') {$directory .= '/';}
@@ -193,7 +201,7 @@ class directories
 				$linkFileContents = file_get_contents ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file);
 				$lines = explode ("\n", $linkFileContents);
 				foreach ($lines as $line) {
-					if (ereg ('^URL=(.*)', $line, $matches)) {
+					if (preg_match ('/^URL=(.*)/', $line, $matches)) {
 						$file = $matches[1];
 						$link = str_replace ('%2f', '/', rawurldecode ($file));
 					}
@@ -336,10 +344,12 @@ class directories
 					
 					# Check for a wildcard-ending hidden file being the same as the tested file
 					if (substr ($hiddenFile, -1) == '*') {
-						if (eregi (('^' . substr ($hiddenFile, 0, -1)), $testFile)) {
+						$delimiter = '@';
+						if (preg_match ($delimiter . '^' . addcslashes (substr ($hiddenFile, 0, -1), $delimiter . 'i') . $delimiter, $testFile)) {
 							$hideFile = true;
 							
 							# However, if the WILDCARD_MATCHES_ZERO_CHARACTERS flag is set, don't hide the file if the test file matches the the hidden file without the *
+							#!# Code is broken here as $wildcardMatchesZeroCharacters does not exist
 							if (($testFile == substr ($hiddenFile, 0, -1)) && $wildcardMatchesZeroCharacters) {
 								$hideFile = false;
 							}
@@ -347,7 +357,8 @@ class directories
 					
 					# Check for a wildcard-starting hidden file being the same as the tested file
 					} else if (substr ($hiddenFile, 0, 1) == '*') {
-						if (eregi ((substr ($hiddenFile, 1) . '$'), $testFile)) {
+						$delimiter = '@';
+						if (preg_match ($delimiter . addcslashes (substr ($hiddenFile, 1), $delimiter) . '$' . $delimiter . 'i', $testFile)) {
 							$hideFile = true;
 						}
 					}
@@ -462,6 +473,7 @@ class directories
 	
 	
 	# Function to get directory structure (but not contents)
+	#!# This could be tidied up - there is code for excluding files (as distinct from directories), but these are never added in the first place
 	public static function tree ($directory, $exclude = array ()/*, $onlyInclude = array ()*/)
 	{
 		# Make sure it's a directory
@@ -687,7 +699,8 @@ class directories
 			
 			# Perform a match if required
 			if ($requireMatch) {
-				if (!ereg ($requireMatch, $file)) {continue;}
+				$delimiter = '/';
+				if (!preg_match ($delimiter . addcslashes ($requireMatch, $delimiter) . $delimiter, $file)) {continue;}
 			}
 			
 			# Avoid areas to be excluded
