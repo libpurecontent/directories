@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.1.1
+# Version 1.1.2
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -211,7 +211,7 @@ class directories
 			}
 			
 			# Add each file to the list, showing a trailing slash for directories if required
-			$html .= "\n\t" . '<li><a href="' . $link . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($extension == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlspecialchars ($attributes['name'] . (($fileExtensionsVisible && ($extension != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
+			$html .= "\n\t" . '<li><a class="noautoicon" href="' . $link . (($attributes['directory']) ? '/' . ($sortByKey == 'date' ? '?date' : '') : '') . '"' . ($extension == 'url' ? ' target="_blank"' : '') . ' title="' . $titleHtml . '">' . $iconHtml . ' ' . htmlspecialchars ($attributes['name'] . (($fileExtensionsVisible && ($extension != '')) ? '.' . $attributes['extension'] : '')) . (($attributes['directory'] && $trailingSlashVisible) ? '/' : '') . '</a>';
 			if (!$attributes['directory']) {$html .= ' (' . date ('j/m/y', $attributes['time']) . ', ' . ($extension == 'url' ? 'Link' : self::fileSizeFormatted ($_SERVER['DOCUMENT_ROOT'] . $currentDirectory . $file)) . ')';}
 			$html .= '</li>';
 		}
