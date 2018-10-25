@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.1.3
+# Version 1.1.4
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -462,7 +462,7 @@ class directories
 	
 	# Wrapper function to create a formatted listing
 	#!# Need to add inheritableExtensions support e.g. .html.old
-	public static function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1', $includeGallery = false)
+	public static function listingWrapper ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $titleFile = '.title.txt', $directoriesOnly = false, $heading = 'h1', $includeGallery = false, $trailingSlashVisible = true)
 	{
 		# Get the contents of the title file
 		$titleFile = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'] . $titleFile;
@@ -476,7 +476,7 @@ class directories
 		$html .= "\n\n" . '<p><a href="../"><em>&lt; Go back</em></a></p>';
 		
 		# Show the directory listing
-		$html .= self::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, true, true, false, array (), 'name', $directoriesOnly, $includeGallery);
+		$html .= self::listing ($iconsDirectory, $iconsServerPath, $hiddenFiles, $caseSensitiveMatching, $trailingSlashVisible, true, false, array (), 'name', $directoriesOnly, $includeGallery);
 		
 		# Return the HTML
 		return $html;
