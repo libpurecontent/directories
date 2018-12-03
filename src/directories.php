@@ -1,11 +1,11 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.1.4
+# Version 1.2.0
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
-# More info: http://download.geog.cam.ac.uk/projects/directories/
+# More info: https://download.geog.cam.ac.uk/projects/directories/
 
 
 #!# These functions need a good tidy-up - there is a lot of duplication of similar functions each with different quirks, some of which work recursively and others not; these should be all combined into a single super-function with options
@@ -136,14 +136,19 @@ class directories
 		# Sort the list alphabetically
 		if ($files) {
 			switch ($sortByKey) {
+				
 				case 'name':
-					$comparisonFunction = "return strcasecmp (\$a['{$sortByKey}'], \$b['{$sortByKey}']);";
+					uasort ($files, function ($a, $b) {
+						return strcasecmp ($a['name'], $b['name']);
+					});
 					break;
+				
 				case 'time':
-					$comparisonFunction = "return (\$a['{$sortByKey}'] < \$b['{$sortByKey}']);";
+					uasort ($files, function ($a, $b) {
+						return ($a['time'] < $b['time']);
+					});
 					break;
 			}
-			uasort ($files, create_function ('$a, $b', $comparisonFunction));
 		}
 		
 		# Return the list
