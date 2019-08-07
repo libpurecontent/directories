@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.2.0
+# Version 1.2.1
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -233,7 +233,7 @@ class directories
 		# Show photo thumbnails if required
 		if ($includeGallery) {
 			require_once ('image.php');
-			$html .= image::gallery (true, false, $size = 250);
+			$html .= image::gallery (true, false, $size = 250, '/images/generator', false, $hiddenFiles /* will only pick up direct filenames in this list */);
 		}
 		
 		# Return the HTML
