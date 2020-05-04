@@ -1,7 +1,7 @@
 <?php
 
 # Class to create various directory manipulation -related static methods
-# Version 1.2.2
+# Version 1.2.3
 
 # Licence: GPL
 # (c) Martin Lucas-Smith, University of Cambridge
@@ -436,9 +436,11 @@ class directories
 			'mov' => 'quicktime.gif',
 			'mpa' => 'media.gif',
 			'mpeg' => 'media.gif',
-			'mp4' => 'quicktime.jpg',
+			'mp3' => 'wav.gif',
+			'mp4' => 'mp4.png',
 			'msg' => 'msg.gif',
 			'mtw' => 'minitab.gif',
+			'm4a' => 'm4a.png',
 			'odb' => 'odb.gif',
 			'odp' => 'odp.gif',
 			'ods' => 'ods.gif',
@@ -501,7 +503,7 @@ class directories
 	
 	# Function to get directory structure (but not contents)
 	#!# This could be tidied up - there is code for excluding files (as distinct from directories), but these are never added in the first place
-	public static function tree ($directory, $exclude = array ()/*, $onlyInclude = array ()*/)
+	public static function tree ($directory /* must be slash-terminated */, $exclude = array ()/*, $onlyInclude = array ()*/)
 	{
 		# Make sure it's a directory
 		if (!is_dir ($directory)) {return array ();}
