@@ -1,18 +1,11 @@
 <?php
 
-# Class to create various directory manipulation -related static methods
-# Version 1.2.3
-
-# Licence: GPL
-# (c) Martin Lucas-Smith, University of Cambridge
-# More info: https://download.geog.cam.ac.uk/projects/directories/
-
 
 #!# These functions need a good tidy-up - there is a lot of duplication of similar functions each with different quirks, some of which work recursively and others not; these should be all combined into a single super-function with options
 
 
-# Ensure the pureContent framework is loaded and clean server globals
-require_once ('pureContent.php');
+#!# Should be passed upstream to calling application
+pureContent::cleanServerGlobals ();
 
 
 # Define a class containing directory manipulation static methods
@@ -243,7 +236,6 @@ class directories
 		
 		# Show photo thumbnails if required
 		if ($includeGallery) {
-			require_once ('image.php');
 			$html .= image::gallery (true, false, $size = 250, '/images/generator', false, $hiddenFiles /* will only pick up direct filenames in this list */);
 		}
 		
@@ -285,7 +277,6 @@ class directories
 					$extension = (strpos ($file, '.') !== false ? str_replace ('.', '', strrchr ($file, '.')) : '');
 					
 					# If a non-empty array of supported file types has been supplied, check whether the current file in the loop should be included
-					require_once ('application.php');
 					$supported = (($allowSupportedFileTypesOnly && (!application::iin_array ($extension, $supportedFileTypes))) ? false : true);
 					
 					# Skip a file if it is not readable
@@ -509,7 +500,6 @@ class directories
 		if (!is_dir ($directory)) {return array ();}
 		
 		# Ensure supplied file lists are arrays
-		require_once ('application.php');
 		$exclude = application::ensureArray ($exclude);
 		/*$onlyInclude = application::ensureArray ($onlyInclude);*/
 		
@@ -707,7 +697,6 @@ class directories
 	public static function listContainedDirectories ($directory, $exclude = array (), $requireMatch = false)
 	{
 		# Ensure the names to be excluded are an array
-		require_once ('application.php');
 		$exclude = application::ensureArray ($exclude);
 		
 		# Start an array to hold the results
