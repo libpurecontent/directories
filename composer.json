@@ -10,7 +10,6 @@
         }
     ],
     "require": {
-        "libpurecontent/purecontent": "^1.13",
         "libpurecontent/image": "^1.4",
         "libpurecontent/application": "^1.9"
     },

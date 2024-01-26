@@ -4,10 +4,6 @@
 #!# These functions need a good tidy-up - there is a lot of duplication of similar functions each with different quirks, some of which work recursively and others not; these should be all combined into a single super-function with options
 
 
-#!# Should be passed upstream to calling application
-pureContent::cleanServerGlobals ();
-
-
 # Define a class containing directory manipulation static methods
 class directories
 {
