@@ -317,6 +317,38 @@ class directories
 	}
 	
 	
+	# Function to standardise file extensions, renaming as required; this is not recursive
+	public static function standardiseFileExtensions ($directory)
+	{
+		# Get the file list
+		$files = glob ($directory . '*.*');
+		
+		# Convert to array (file => file) structure, so that changes can be returned
+		$files = array_combine ($files, $files);
+		
+		# Define equivalents, as variant => desired
+		$equivalents = array (
+			'jpeg'	=> 'jpg',
+			'tif'	=> 'tiff',
+			'htm'	=> 'html',
+		);
+		
+		# Standardise filenames
+		foreach ($files as $originalFile => $file) {
+			$extension = pathinfo ($file, PATHINFO_EXTENSION);
+			$preferredExtension = strtr (strtolower ($extension), $equivalents);
+			if ($extension != $preferredExtension) {
+				$newFile = $directory . pathinfo ($file, PATHINFO_FILENAME) . '.' . $preferredExtension;
+				rename ($file, $newFile);
+				$files[$originalFile] = $newFile;	// Register the change
+			}
+		}
+		
+		# Return the amended filelist, indexed by original filename
+		return $files;
+	}
+	
+	
 	# Function to remove files specified as hidden from a list of files
 	public static function removeHiddenFiles ($hiddenFiles, $files, $currentDirectory, $caseSensitiveMatching = true)
 	{
