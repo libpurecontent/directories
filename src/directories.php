@@ -865,6 +865,120 @@ class directories
 			return round ($size/$tb, 2) . ' TB';
 		}
 	}
+	
+	
+	# Function to create a sitemap listing
+	public static function sitemap ($banned = array (), $titleFile = '.title.txt', $startPoint = '/', $stateIfEmpty = true, $heading = '<h1>Sitemap</h1>')
+	{
+		# Assign known directory names to be ignored
+		$exclude = array ('.AppleDouble');
+		
+		# Get the directory contents
+		$directories = self::tree ($_SERVER['DOCUMENT_ROOT'] . $startPoint, $exclude);
+		
+		# End if no directories
+		if (!$directories && !$stateIfEmpty) {
+			return false;
+		}
+		
+		# Create the HTML by making the directory listing
+		$html  = '';
+		if ($startPoint == '/') {
+			$html .= "\n{$heading}";
+			$html .= "\n\n<p>This page contains links to the various sections of the website. The 'find' function in your browser (usually Ctrl-F) may prove useful.</p>";
+		}
+		$html .= "\n\n" . '<div class="sitemap">';
+		if ($directories) {
+			$html .= self::makeDirectoryListing ($directories, $startPoint, $titleFile, $banned);
+		} else {
+			$html .= "<p><em>There are no sections at present.</em></p>";
+		}
+		$html .= "\n\n</div>";
+		
+		# Return the HTML
+		return $html;
+	}
+	
+	
+	# Function to make a list of links for the current directory
+	private static function makeDirectoryListing ($directories, $startPoint, $titleFile, $banned, $tabLevel = 1)
+	{
+		# Loop through the directory structure and create an array of links
+		$links = array ();
+		foreach ($directories as $directory => $contents) {
+			
+			# Determine the current location as if from the site root
+			$location = $startPoint . $directory . '/';
+			
+			# Skip if the location is banned
+			if (in_array ($location, $banned)) {continue;}
+			
+			# Only proceed if there is a title file
+			if ($titleFile) {
+				if (!file_exists ($_SERVER['DOCUMENT_ROOT'] . $location . $titleFile)) {continue;}
+			}
+			
+			# Get the description
+			$description = ($titleFile ? file_get_contents ($_SERVER['DOCUMENT_ROOT'] . $location . $titleFile) : $directory);
+			
+			# Add to the list of links
+			$links[$location]['description'] = htmlspecialchars ($description);
+			
+			# Remove subdirectories from the tree if noted in the ban
+			foreach ($banned as $ban) {
+				if (substr ($ban, -1) == '*') {
+					$stopTraversalLocation = substr ($ban, 0, -1);
+					if ($stopTraversalLocation == $location) {
+						$contents = false;
+					}
+				}
+			}
+			
+			# Get HTML for the subdirectory contents if there are any subdirectories
+			$links[$location]['subdirectoryHtml'] = (($contents) ? self::makeDirectoryListing ($contents, $location, $titleFile, $banned, ($tabLevel + 1)) : '');
+		}
+		
+		# If links have been found, compile them
+		if ($links) {
+			
+			# Natsort the array by the description key
+			uasort ($links, 'self::natsortArrayItem');
+			
+			# Construct the HTML for each link
+			foreach ($links as $location => $description) {
+				$subHtml[] = "<a href=\"$location\">" . $links[$location]['description'] . '</a>' . $links[$location]['subdirectoryHtml'];
+			}
+			
+			# Compile the HTML
+			$html = application::htmlUl ($subHtml, $tabLevel);
+			
+			# Return the HTML
+			return $html;
+		}
+		
+		# Otherwise return an empty string;
+		return NULL;
+	}
+	
+	
+	# Comparison function used by ::uasort above
+	private static function natsortArrayItem ($a, $b)
+	{
+		# Remove particular characters from the start
+		$ignore = array ("'", '"');
+		if (in_array (substr ($a['description'], 0, 1), $ignore)) {
+			$a['description'] = substr ($a['description'], 1);
+		}
+		if (in_array (substr ($b['description'], 0, 1), $ignore)) {
+			$b['description'] = substr ($b['description'], 1);
+		}
+		
+		# Perform the sorting and return a comparison
+		$originalArray = array ($a['description'], $b['description']);
+		$array = $originalArray;
+		natsort ($array);
+		return (($array === $originalArray) ? -1 : 1);
+	}
 }
 
 ?>
